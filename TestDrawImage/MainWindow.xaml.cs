@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Windows;
 using System.Windows.Media.Imaging;
-
+using System.Linq;
 namespace TestDrawImage
 {
     /// <summary>
@@ -35,20 +36,25 @@ namespace TestDrawImage
         private unsafe void DrawImage()
         {
             var writeableBitmap = new WriteableBitmap(LeftImage.Source as BitmapImage);
-
-            for (int i = 1; i < writeableBitmap.PixelWidth; i++)
+            var colorList = new Color[writeableBitmap.PixelWidth * writeableBitmap.PixelHeight];
+            for (int i = 0; i < writeableBitmap.PixelWidth; i++)
             {
-                for (int j = 1; j < writeableBitmap.PixelHeight; j++)
+                for (int j = 0; j < writeableBitmap.PixelHeight; j++)
                 {
                     var p = writeableBitmap.GetPixel(i, j);
                     var s = Sobel(writeableBitmap, i, j);
                     var color = BitmapUtils.LerpColor(Color.Black, p, s);
-                    //if (i < 10 && j < 10)
-                    //    Debug.WriteLine(p + "  " + s);
-                    // color = Color.FromArgb(color.A, (byte)(color.R), color.G, color.B);
-                    writeableBitmap.SetPixel(i, j, color);
+                    var index = j * writeableBitmap.PixelWidth + i;
+                    colorList[index] = color;
                 }
             }
+
+            var colorBytes = colorList.SelectMany(p => new byte[] { p.R, p.G, p.B, p.A }).ToArray();
+            writeableBitmap.Lock();
+            var drawRect = new Int32Rect(0, 0, writeableBitmap.PixelWidth, writeableBitmap.PixelHeight);
+            writeableBitmap.WritePixels(drawRect, colorBytes, writeableBitmap.BackBufferStride, 0);
+            writeableBitmap.AddDirtyRect(drawRect);
+            writeableBitmap.Unlock();
 
             RightImage.Source = writeableBitmap;
         }
@@ -63,7 +69,7 @@ namespace TestDrawImage
 
         public struct Pos
         {
-            public Pos(int x,int y)
+            public Pos(int x, int y)
             {
                 X = x;
                 Y = y;
@@ -72,13 +78,13 @@ namespace TestDrawImage
             public int Y;
         }
 
-
         public Pos[] PosArr = new Pos[]
         {
             new Pos(-1,-1), new Pos(0,-1), new Pos(1,-1),
             new Pos(-1, 0), new Pos(0, 0), new Pos(1, 0),
             new Pos(-1, 1), new Pos(0, 1), new Pos(1,  1),
         };
+
         public float Sobel(WriteableBitmap bitmap, int x, int y)
         {
             var filterX = new int[] {
@@ -99,9 +105,11 @@ namespace TestDrawImage
             {
                 var pos = PosArr[i];
                 var pixel = bitmap.GetPixel(x + pos.X, y + pos.Y);
+                //读取像素的亮度
                 luminance = BitmapUtils.Luminance(pixel);
+                //对比边缘的值
                 edgeX += luminance * filterX[i];
-                edgeX += luminance * filterY[i];
+                edgeY += luminance * filterY[i];
             }
 
             float edge = 1 - Math.Abs(edgeX) - Math.Abs(edgeY);

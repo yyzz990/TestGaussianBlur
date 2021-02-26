@@ -6,15 +6,19 @@ namespace TestDrawImage
 {
     public static class BitmapUtils
     {
+
         public unsafe static Color GetPixel(this WriteableBitmap bitmap, int x, int y)
         {
-            if (x < 0 || y < 0 || x >= bitmap.PixelWidth || y >= bitmap.PixelHeight)
-                return Color.Empty;
+            if (x < 0) x = 0;
+            if (y < 0) y = 0;
+            if (x > bitmap.PixelWidth - 1) x = bitmap.PixelWidth - 1;
+            if (y > bitmap.PixelHeight - 1) y = bitmap.PixelHeight - 1;
+
             bitmap.Lock();
             var backBuffer = (byte*)bitmap.BackBuffer;
             var index = (y * bitmap.PixelWidth + x) * (bitmap.Format.BitsPerPixel / 8);
             var color = Color.FromArgb(backBuffer[index + 3],
-                backBuffer[index], 
+                backBuffer[index],
                 backBuffer[index + 1],
                 backBuffer[index + 2]);
             bitmap.Unlock();
@@ -24,8 +28,11 @@ namespace TestDrawImage
 
         public unsafe static void SetPixel(this WriteableBitmap bitmap, int x, int y, Color color)
         {
-            if (x < 0 || y < 0 || x >= bitmap.PixelWidth || y >= bitmap.PixelHeight)
-                return;
+            if (x < 0) x = 0;
+            if (y < 0) y = 0;
+            if (x > bitmap.PixelWidth - 1) x = bitmap.PixelWidth - 1;
+            if (y > bitmap.PixelHeight - 1) y = bitmap.PixelHeight - 1;
+
             bitmap.Lock();
             var backBuffer = (byte*)bitmap.BackBuffer;
             var index = (y * bitmap.PixelWidth + x) * (bitmap.Format.BitsPerPixel / 8);
@@ -40,7 +47,7 @@ namespace TestDrawImage
 
         public static float Luminance(Color color)
         {
-            return 0.2125f * color.R/255f + 0.7154f * color.G / 255f + 0.0721f * color.B / 255f;
+            return 0.2125f * color.R / 255f + 0.7154f * color.G / 255f + 0.0721f * color.B / 255f;
         }
 
 
