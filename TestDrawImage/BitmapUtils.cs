@@ -36,5 +36,28 @@ namespace TestDrawImage
             bitmap.AddDirtyRect(new Int32Rect(x, y, 1, 1));
             bitmap.Unlock();
         }
+
+
+        public static float Luminance(Color color)
+        {
+            return 0.2125f * color.R/255f + 0.7154f * color.G / 255f + 0.0721f * color.B / 255f;
+        }
+
+
+
+
+        public static Color LerpColor(Color from, Color to, float lerp)
+        {
+            float r = from.R + (to.R - from.R) * lerp;
+            float g = from.G + (to.G - from.G) * lerp;
+            float b = from.B + (to.B - from.B) * lerp;
+            float a = from.A + (to.A - from.A) * lerp;
+
+            return Color.FromArgb((byte)a, (byte)r, (byte)g, (byte)b);
+
+        }
     }
+
+
+
 }
