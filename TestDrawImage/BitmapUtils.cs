@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Windows;
 using System.Windows.Media.Imaging;
 
@@ -55,6 +56,7 @@ namespace TestDrawImage
 
         public static Color LerpColor(Color from, Color to, float lerp)
         {
+            lerp = Math.Clamp(lerp, 0, 1);
             float r = from.R + (to.R - from.R) * lerp;
             float g = from.G + (to.G - from.G) * lerp;
             float b = from.B + (to.B - from.B) * lerp;

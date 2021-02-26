@@ -30,10 +30,13 @@ namespace TestDrawImage
 
             LeftImage.Source = bitmapImage;
 
-            DrawImage();
+            DrawStrokeImage();
         }
 
-        private unsafe void DrawImage()
+        #region  描边
+
+        public float m_EdgeOnly = 1;
+        private unsafe void DrawStrokeImage()
         {
             var writeableBitmap = new WriteableBitmap(LeftImage.Source as BitmapImage);
             var colorList = new Color[writeableBitmap.PixelWidth * writeableBitmap.PixelHeight];
@@ -43,7 +46,9 @@ namespace TestDrawImage
                 {
                     var p = writeableBitmap.GetPixel(i, j);
                     var s = Sobel(writeableBitmap, i, j);
-                    var color = BitmapUtils.LerpColor(Color.Black, p, s);
+                    var edgeColor = BitmapUtils.LerpColor(Color.White, p, s);//混合边缘颜色和原图颜色，edge越小，越判定为边缘
+                    var backgroundColor = BitmapUtils.LerpColor(Color.White, Color.Black, s);//混合边缘颜色和背景颜色。
+                    var color = BitmapUtils.LerpColor(edgeColor, backgroundColor, m_EdgeOnly);//原图混合还是混合背景颜色的插值。
                     var index = j * writeableBitmap.PixelWidth + i;
                     colorList[index] = color;
                 }
@@ -57,14 +62,6 @@ namespace TestDrawImage
             writeableBitmap.Unlock();
 
             RightImage.Source = writeableBitmap;
-        }
-
-        private void SetPixel(byte[] byteList, int startIndex, Color color)
-        {
-            byteList[startIndex] = color.R;
-            byteList[startIndex + 1] = color.G;
-            byteList[startIndex + 2] = color.B;
-            byteList[startIndex + 3] = color.A;
         }
 
         public struct Pos
@@ -111,29 +108,25 @@ namespace TestDrawImage
                 edgeX += luminance * filterX[i];
                 edgeY += luminance * filterY[i];
             }
-
+            //梯度值
             float edge = 1 - Math.Abs(edgeX) - Math.Abs(edgeY);
             edge = Math.Clamp(edge, 0, 1);
             return edge;
         }
 
 
-
-        private unsafe Color GetPixelColor(byte* colorArr, int startIndex)
-        {
-            var blue = colorArr[startIndex];
-            var green = colorArr[startIndex + 1];
-            var red = colorArr[startIndex + 2];
-            var alpha = colorArr[startIndex + 3];
-            return Color.FromArgb(alpha,
-                red,
-                green,
-                blue);
-        }
+        #endregion
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            DrawImage();
+            DrawStrokeImage();
+        }
+
+        private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            m_EdgeOnly = (float)Math.Clamp(e.NewValue / 100f, 0, 1);
+            Debug.WriteLine("Slider_ValueChanged " + e.NewValue);
+
         }
     }
 }
