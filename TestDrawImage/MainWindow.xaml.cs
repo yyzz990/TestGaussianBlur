@@ -20,16 +20,17 @@ namespace TestDrawImage
             InitWindow();
         }
 
+        private bool m_IsInited = false;
         private void InitWindow()
         {
-            var stream = File.OpenRead("Tulips.jpg");
+            var stream = File.OpenRead("Tulips_600.jpg");
             var bitmapImage = new BitmapImage();
             bitmapImage.BeginInit();
             bitmapImage.StreamSource = stream;
             bitmapImage.EndInit();
 
             LeftImage.Source = bitmapImage;
-
+            m_IsInited = true;
             DrawStrokeImage();
         }
 
@@ -126,6 +127,8 @@ namespace TestDrawImage
         {
             m_EdgeOnly = (float)Math.Clamp(e.NewValue / 100f, 0, 1);
             Debug.WriteLine("Slider_ValueChanged " + e.NewValue);
+            if(m_IsInited)
+                DrawStrokeImage();
 
         }
     }
