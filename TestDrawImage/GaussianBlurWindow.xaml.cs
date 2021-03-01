@@ -111,7 +111,7 @@ namespace TestDrawImage
         //gaussian function
         public float GetGaussianValue(int x, int y)
         {
-            float sigma = 1;
+            float sigma = 2f;
             double n = 1f / (2 * Math.PI * sigma * sigma) * Math.Exp(-(x * x + y * y) / (2 * sigma * sigma));
             return (float)n;
         }
